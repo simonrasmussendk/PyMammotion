@@ -732,7 +732,18 @@ class CloudIOTGateway:
         logger.debug(iot_id)
 
         response_body_str = response.body.decode("utf-8")
-        response_body_dict = json.loads(response_body_str)
+        
+        # Check if response body is empty before parsing
+        if not response_body_str:
+            logger.error("Received empty response from server during cloud command")
+            raise Exception("Error sending cloud command: Empty response received")
+        
+        # Load the JSON string into a dictionary
+        try:
+            response_body_dict = json.loads(response_body_str)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode JSON response: {e}, response body: {response_body_str}")
+            raise Exception(f"Error sending cloud command: Invalid JSON response - {str(e)}")
 
         if int(response_body_dict.get("code")) != 200:
             logger.error(
